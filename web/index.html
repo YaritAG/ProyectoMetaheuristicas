@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>IntelRR - Optimizador de Logística Verde</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>IntelRR: Visualizador de Ruta Óptima</h1>
+            <p>Haz clic en el mapa para añadir el Depósito (primero) y luego las Paradas.</p>
+        </header>
+
+        <main>
+            <div class="canvas-container">
+                <canvas id="routeCanvas" width="800" height="500"></canvas>
+            </div>
+
+            <aside class="controls">
+                <div class="stats-panel">
+                    <h3>Panel de Control</h3>
+                    <p>Nodos: <span id="nodeCount">0</span></p>
+                    <p>CO₂ Estimado: <span id="co2Stat">--</span></p>
+                </div>
+
+                <button id="btnOptimize" class="primary">Optimizar Ruta (Híbrido)</button>
+                <button id="btnClear">Limpiar Mapa</button>
+            </aside>
+        </main>
+    </div>
+
+    <script src="js/canvas_manager.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>

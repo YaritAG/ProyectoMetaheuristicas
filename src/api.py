@@ -1,3 +1,25 @@
+# Puente de comunicación entre el Frontend (Canvas) y el Backend (Optimización)
+"""
+Esta API sirve como el punto de entrada para que el frontend (HTML/JS) envíe los datos de las paradas y reciba la ruta optimizada.
+Utiliza Flask para manejar las solicitudes HTTP y CORS para permitir la comunicación entre el frontend y el backend.
+
+El flujo es el siguiente:
+1. El usuario hace clic en el canvas para agregar paradas (nodos).
+
+2. Al hacer clic en "Optimizar", el frontend envía un POST request a esta API con los datos de las paradas y la capacidad del vehículo.
+
+3. La API convierte los datos JSON en objetos de Python, ejecuta el proceso de optimización (Genético + Tabú) y devuelve la ruta optimizada junto con las estadísticas de CO2 y distancia.
+
+4. El frontend recibe la respuesta y actualiza el canvas para mostrar la ruta optimizada.
+
+5. El usuario puede ver el ahorro de CO2 y la distancia total en la interfaz.
+
+6. El usuario puede limpiar el canvas para empezar de nuevo.
+
+Y finalmente, el usuario puede repetir el proceso para seguir optimizando rutas diferentes. 
+Esta API es esencial para conectar la lógica de optimización con la interfaz de usuario de manera fluida y eficiente.
+Asi es como funciona.
+"""
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from models.stop import Stop

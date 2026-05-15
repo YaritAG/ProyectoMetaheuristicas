@@ -1,103 +1,130 @@
 // Codigo para manejar el canvas y la interacción con el usuario
 // Este código permite al usuario hacer clic en el canvas para agregar nodos (depósito y paradas) y muestra la cantidad de nodos agregados. También incluye un botón para limpiar el canvas.
 
-// función para inicializar el canvas y manejar los eventos de clic
+// web/js/canvas_manager.js
+
 const canvas = document.getElementById('routeCanvas');
 const ctx = canvas.getContext('2d');
-let nodes = [];
+let nodes = []; // Variable global para que app.js la reconozca
 
-// Función para mostrar el aviso moderno
+// --- NOTIFICACIONES ---
 function showToast(message) {
     const container = document.getElementById('toast-container');
+    if (!container) return; // Evita errores si no existe el contenedor
+
     const toast = document.createElement('div');
     toast.className = 'toast';
-
     toast.innerHTML = `
         <span>${message}</span>
         <span class="close-btn">&times;</span>
     `;
-
     container.appendChild(toast);
 
-    // Función para quitar el toast con efecto
     const removeToast = () => {
         toast.classList.add('fade-out');
         setTimeout(() => toast.remove(), 500);
     };
 
-    // Quitar al hacer clic en la X
     toast.querySelector('.close-btn').onclick = removeToast;
-
-    // Quitar automáticamente tras 10 segundos
     setTimeout(removeToast, 10000);
 }
 
-// Agregar un nodo al hacer clic en el canvas
-// Actualizamos el evento de clic
+// --- LÓGICA DEL CANVAS ---
 canvas.addEventListener('click', (e) => {
-    // Limitar a 9 nodos (1 depósito + 8 paradas)
+    // 1. Limitar a 9 nodos
     if (nodes.length >= 9) {
-        showToast("Límite de 9 nodos alcanzado.");
+        showToast("Límite de 9 nodos alcanzado para estabilidad del sistema.");
         return;
     }
 
-    // Obtener la posición del clic relativa al canvas
     const rect = canvas.getBoundingClientRect();
-    const node = {
+    const x = Math.round(e.clientX - rect.left);
+    const y = Math.round(e.clientY - rect.top);
+
+    // 2. Crear objeto nodo con IDs consistentes
+    const newNode = {
         id: nodes.length,
-        x: Math.round(e.clientX - rect.left),
-        y: Math.round(e.clientY - rect.top),
-        demand: 0, // Inicia en 0, el usuario lo editará
+        x: x,
+        y: y,
+        demand: 0,
         type: nodes.length === 0 ? 'deposito' : 'parada'
     };
 
-    // Agregar el nodo a la lista y dibujarlo en el canvas
-    nodes.push(node);
-    addNodeToPanel(node); 
-    drawNode(node);
+    nodes.push(newNode);
+    addNodeToPanel(newNode);
+    drawNode(newNode);
 
-    // Actualizar el contador de nodos en el panel lateral
-    document.getElementById('nodeCount').innerText = nodes.length;
+    // 3. Actualizar contador (Validar que el ID existe en el HTML)
+    const counter = document.getElementById('nodeCount');
+    if (counter) counter.innerText = nodes.length;
 });
 
-// Función para agregar un nodo al panel lateral, mostrando su tipo (depósito o parada) y permitiendo al usuario editar la demanda de cada parada. El depósito no tiene demanda editable.
+// --- PANEL LATERAL (UI DINÁMICA) ---
 function addNodeToPanel(node) {
     const list = document.getElementById('nodesList');
     const div = document.createElement('div');
     div.className = `node-item ${node.type}`;
 
-    // Etiqueta para el nodo, mostrando "Depósito" para el primer nodo y "Parada X" para los siguientes. El depósito no tiene un campo de entrada para demanda, mientras que las paradas sí lo tienen.
     const label = node.type === 'deposito' ? 'Depósito' : `Parada ${node.id}`;
 
-    // Si es depósito, la carga suele ser 0 o la capacidad total
+    // Nuevo input: Tipo número pero visualmente texto, sin flechas y con oninput
     const inputHTML = node.type === 'deposito'
-        ? `<span>-</span>`
-        : `<input type="number" value="5" min="1" id="demand-${node.id}" onchange="updateDemand(${node.id}, this.value)"> kg`;
+        ? `<span style="color: #7f8c8d;">---</span>`
+        : `<input type="number" 
+                  placeholder="0" 
+                  id="demand-${node.id}" 
+                  class="weight-input"
+                  oninput="updateDemand(${node.id}, this.value)"> <span class="unit">kg</span>`;
 
     div.innerHTML = `<span><strong>${label}</strong></span> ${inputHTML}`;
     list.appendChild(div);
 }
 
+// --- ACTUALIZACIÓN DE PESOS Y CÁLCULO TOTAL ---
 function updateDemand(id, value) {
     const node = nodes.find(n => n.id === id);
-    if (node) node.demand = parseFloat(value);
+    if (node) {
+        node.demand = parseFloat(value) || 0;
+
+        // Llamar a la función de cálculo total (debe estar en app.js o aquí)
+        if (typeof calculateTotalWeight === "function") {
+            calculateTotalWeight();
+        }
+    }
 }
 
-// Función para dibujar un nodo en el canvas, diferenciando entre depósito y paradas con colores distintos. También se muestra una etiqueta con el tipo de nodo o su ID.
+// --- DIBUJO ---
 function drawNode(node) {
     ctx.beginPath();
-    ctx.arc(node.x, node.y, 8, 0, Math.PI * 2);
-    ctx.fillStyle = node.type === 'deposito' ? '#fb8c00' : '#1976d2';
+    ctx.arc(node.x, node.y, 10, 0, Math.PI * 2);
+
+    // Colores neón para modo oscuro
+    ctx.fillStyle = node.type === 'deposito' ? '#e67e22' : '#3498db';
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = ctx.fillStyle;
     ctx.fill();
     ctx.closePath();
 
-    ctx.fillStyle = "black";
-    ctx.fillText(node.type === 'deposito' ? "D" : node.id, node.x + 10, node.y - 10);
+    // Resetear sombra para el texto
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "white";
+    ctx.font = "bold 12px Poppins";
+    ctx.fillText(node.type === 'deposito' ? "D" : node.id, node.x + 12, node.y - 12);
 }
 
-// Evento para el botón de optimización, que envía los datos al backend y maneja la respuesta para mostrar la ruta optimizada y las estadísticas de CO₂. Se muestra un aviso moderno en caso de error.
+// --- LIMPIAR ---
 document.getElementById('btnClear').addEventListener('click', () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     nodes = [];
-    document.getElementById('nodeCount').innerText = "0";
+
+    const list = document.getElementById('nodesList');
+    if (list) list.innerHTML = "";
+
+    const counter = document.getElementById('nodeCount');
+    if (counter) counter.innerText = "0";
+
+    // Reiniciar pesos acumulados si existe la función
+    if (typeof calculateTotalWeight === "function") {
+        calculateTotalWeight();
+    }
 });

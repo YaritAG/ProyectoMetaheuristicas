@@ -7,9 +7,12 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
+    <!-- Fuente moderna y legible para mejorar la estética del sitio, con un toque profesional y amigable. -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 
 <body>
+    <!-- Contenedor principal que organiza el header, el canvas para el mapa de rutas y el panel lateral de controles y estadísticas. -->
     <div class="container">
         <header>
             <h1>IntelRR: Visualizador de Ruta Óptima</h1>
@@ -17,25 +20,57 @@
         </header>
 
         <main>
+            <!-- Contenedor del canvas para el mapa de rutas -->
             <div class="canvas-container">
                 <canvas id="routeCanvas" width="800" height="500"></canvas>
             </div>
-
-            <!-- Panel lateral para controles y estadísticas -->
-            <aside class="controls">
                 <!-- Estadísticas y configuración de nodos -->
                 <div class="stats-panel">
-                    <h3>Configuración de Carga</h3>
-                    <p>Nodos: <span id="nodeCount">0</span> / 9</p>
+                    <h3>Configuración de Vehículo</h3>
+
+                    <!-- Dropdown para seleccionar el tipo de vehículo, con datos de peso para calcular el impacto ecológico. Al cambiar la selección, se actualizan las estadísticas de carga y capacidad. -->
+                    <select id="vehicleSelect" onchange="updateVehicleStats()">
+                        <option value="40" data-weight="150">Motocicleta (40kg)</option>
+                        <option value="600" data-weight="1200">Furgoneta Pequeña (600kg)</option>
+                        <option value="1500" data-weight="2000" selected>Furgoneta Carga (1,500kg)</option>
+                        <option value="3500" data-weight="4500">Camión Ligero (3,500kg)</option>
+                        <option value="12000" data-weight="8000">Camión Rígido (12,000kg)</option>
+                        <option value="25000" data-weight="15000">Tráiler (25,000kg)</option>
+                    </select>
+                
+                    <!-- Barra de carga que muestra la carga total actual en relación con la capacidad máxima del vehículo seleccionado. 
+                    Se actualiza dinámicamente a medida que se añaden paradas y se asignan demandas. -->
+                    <div class="load-bar-container">
+                        <p>Carga Total: <span id="totalLoad">0</span> / <span id="maxCapacity">1500</span> kg</p>
+                        <div id="loadProgress" class="load-progress"></div>
+                    </div>
+                
+                    <!-- Contenedor para la lista de nodos añadidos, mostrando cada parada con su demanda editable. El depósito se muestra como un nodo especial sin demanda editable. -->
                     <div id="nodesList" class="nodes-input-list">
                     </div>
-                    <hr>
-                    <p>CO₂ Estimado: <span id="co2Stat">--</span> kg</p>
+                    
+                    <!-- Resumen de peso total acumulado, que se utiliza para calcular el impacto ecológico. 
+                     Se muestra una barra de progreso que indica visualmente el peso total en relación con un umbral máximo (por ejemplo, la capacidad del vehículo). -->
+                    <div class="weight-summary-panel">
+
+                        <!-- Información sobre el peso total acumulado -->
+                        <div class="weight-info">
+                            <span>Peso Total Acumulado:</span>
+                            <span id="totalWeightDisplay">0</span> kg
+                        </div>
+
+                        <!-- Barra de progreso para el peso total -->
+                        <div class="weight-bar-bg">
+                            <div id="weightProgressBar" class="weight-bar-fill"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Botones de acción agrupados en un contenedor para mejorar la organización visual. -->
+                    <div class="control-buttons">
+                        <button id="btnOptimize" class="primary">Optimizar con Pesos</button>
+                        <button id="btnClear">Limpiar Mapa</button>
+                    </div>
                 </div>
-            
-                <!-- Botones de acción -->
-                <button id="btnOptimize" class="primary">Optimizar con Pesos</button>
-                <button id="btnClear">Limpiar Mapa</button>
             </aside>
         </main>
     </div>

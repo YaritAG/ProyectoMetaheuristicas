@@ -1,4 +1,10 @@
-/* Asegúrate de que el contenedor use Flexbox */
+/* Estilos para IntelRR: Visualizador de Ruta Óptima con Enfoque Ecológico */
+/* Estos estilos están diseñados para crear una interfaz moderna, limpia y profesional, con un enfoque en la usabilidad y la estética visual. 
+Se utilizan colores oscuros para el fondo, acentos verdes para resaltar elementos importantes relacionados con la ecología, y tipografía clara para mejorar la legibilidad. */
+
+/* ------------------------------------------------------ */
+/* Variables de color para mantener la consistencia y facilitar cambios futuros 
+/* ------------------------------------------------------ */
 main {
     display: flex;
     flex-direction: row;
@@ -6,6 +12,144 @@ main {
     gap: 20px;
     padding: 20px;
     align-items: flex-start;
+}
+
+:root {
+    --bg-dark: #293036;
+    /* Tu nuevo color base */
+    --bg-light: #343d46;
+    /* Un tono más claro para contrastes */
+    --accent-green: #2ecc71;
+    /* Verde para rutas ecológicas */
+    --accent-blue: #3498db;
+    /* Azul para nodos y selección */
+    --text-white: #ffffff;
+    --text-gray: #bdc3c7;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-white);
+    margin: 0;
+}
+
+/* Panel de Control Estilo Flotante */
+.stats-panel {
+    background: var(--bg-light);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ------------------------------------------------------ */
+/* Estilo de los nodos y entradas de peso 
+/* ------------------------------------------------------ */
+/* Inputs de peso con look moderno */
+.node-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    border-left: 4px solid var(--accent-blue);
+    margin-bottom: 8px;
+    transition: transform 0.2s;
+}
+
+.node-item:hover {
+    transform: translateX(5px);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.node-item input {
+    background: #21272d;
+    border: 1px solid #454d55;
+    color: white;
+    border-radius: 4px;
+}
+
+.nodes-input-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 15px;
+}
+
+.node-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9f9f9;
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    border-left: 3px solid #1976d2;
+}
+
+.node-item.deposito {
+    border-left-color: #fb8c00;
+}
+
+/* 1. Estilo base del input (estilo caja de texto limpia) */
+.node-item input {
+    background: #1f252a;
+    /* Un tono más oscuro que el fondo base */
+    border: 1px solid #3d464f;
+    color: #2ecc71;
+    /* Verde neón para los números */
+    font-family: 'Poppins', sans-serif;
+    padding: 5px 10px;
+    border-radius: 4px;
+    width: 65px;
+    text-align: center;
+    outline: none;
+    transition: all 0.3s ease;
+    -moz-appearance: textfield;
+    /* Quita flechas en Firefox */
+}
+
+/* 2. Quitar flechas en Chrome, Safari y Edge */
+.node-item input::-webkit-outer-spin-button,
+.node-item input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* 3. Efecto Hover y Focus (Oscurecer más y resaltar borde) */
+.node-item input:hover,
+.node-item input:focus {
+    background: #161b1f;
+    /* Fondo aún más oscuro al interactuar */
+    border-color: #2ecc71;
+    box-shadow: 0 0 8px rgba(46, 204, 113, 0.2);
+}
+
+/* Ajuste para que el texto de la parada se vea bien sobre el oscuro */
+.node-item {
+    background: #293036;
+    color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ------------------------------------------------------ */
+/* Estilo de los botones */
+/* ------------------------------------------------------ */
+button.primary {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    border: none;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+button.primary:hover {
+    box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+    transform: translateY(-2px);
 }
 
 .canvas-container {
@@ -97,31 +241,70 @@ canvas {
     }
 }
 
-.nodes-input-list {
-    max-height: 300px;
-    overflow-y: auto;
-    margin-top: 15px;
+.load-bar-container {
+    margin: 15px 0;
+    background: #eee;
+    border-radius: 10px;
+    height: 12px;
+    position: relative;
+    overflow: hidden;
 }
 
-.node-item {
+.load-progress {
+    height: 100%;
+    width: 0%;
+    background: #2e7d32;
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+#vehicleSelect {
+    width: 100%;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+}
+
+.weight-summary-panel {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    padding: 15px;
+    margin-top: 20px;
+}
+
+#totalWeightDisplay {
+    font-size: 1.2em;
+    color: var(--accent-green);
+    text-shadow: 0 0 10px rgba(46, 204, 113, 0.3);
+}
+
+.weight-info {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    background: #f9f9f9;
-    padding: 8px;
+    font-weight: bold;
+    font-size: 0.9em;
     margin-bottom: 5px;
-    border-radius: 4px;
-    border-left: 3px solid #1976d2;
 }
 
-.node-item.deposito {
-    border-left-color: #fb8c00;
+.weight-bar-bg {
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
 }
 
-.node-item input {
-    width: 60px;
-    padding: 4px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    text-align: center;
+.weight-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: #2e7d32;
+    /* Verde por defecto */
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.overloaded-text {
+    color: #d32f2f;
+}
+
+.overloaded-bar {
+    background: #d32f2f !important;
 }

@@ -17,7 +17,7 @@ class TabuSearch:
         """Genera rutas vecinas intercambiando dos paradas (Swap)."""
         neighbors = []
         # No tocamos el depósito (índice 0 y último)
-        for i in range(1, len(route) - 2):
+        for i in range(1, len(route) - 1):
             for j in range(i + 1, len(route) - 1):
                 neighbor = copy.copy(route)
                 neighbor[i], neighbor[j] = neighbor[j], neighbor[i]

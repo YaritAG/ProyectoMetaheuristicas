@@ -1,57 +1,127 @@
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f7f6;
-    margin: 0;
-    color: #333;
-}
-
-.container {
-    width: 90%;
-    max-width: 1100px;
-    margin: 20px auto;
-}
-
+/* Asegúrate de que el contenedor use Flexbox */
 main {
     display: flex;
+    flex-direction: row;
+    /* Mapa a la izquierda, controles a la derecha */
     gap: 20px;
+    padding: 20px;
+    align-items: flex-start;
 }
 
 .canvas-container {
-    background: white;
-    border: 2px solid #2e7d32;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: #ffffff;
+    border: 3px solid #2e7d32;
+    /* Verde botella */
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    line-height: 0;
+    /* Elimina espacios fantasma bajo el canvas */
 }
 
 canvas {
-    cursor: crosshair;
-    display: block;
+    background-color: #fafafa;
+    border-radius: 10px;
 }
 
 .controls {
-    flex: 1;
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    min-width: 250px;
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-top: 5px solid #2e7d32;
 }
 
-button {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    border: none;
-    border-radius: 4px;
+.stats-panel h3 {
+    margin-top: 0;
+    color: #2e7d32;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.toast {
+    background: #333;
+    color: white;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 300px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    border-left: 5px solid #2e7d32;
+    /* Verde IntelRR */
+    animation: slideIn 0.5s ease forwards;
+}
+
+.toast .close-btn {
     cursor: pointer;
     font-weight: bold;
+    margin-left: 15px;
+    opacity: 0.7;
 }
 
-button.primary {
-    background-color: #2e7d32;
-    color: white;
+.toast .close-btn:hover {
+    opacity: 1;
 }
 
-button#btnClear {
-    background-color: #d32f2f;
-    color: white;
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.fade-out {
+    animation: fadeOut 0.5s ease forwards;
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+.nodes-input-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 15px;
+}
+
+.node-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9f9f9;
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    border-left: 3px solid #1976d2;
+}
+
+.node-item.deposito {
+    border-left-color: #fb8c00;
+}
+
+.node-item input {
+    width: 60px;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: center;
 }

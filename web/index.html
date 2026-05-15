@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <title>IntelRR - Optimizador de Logística Verde</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌿</text></svg>">
 </head>
 
 <body>
@@ -19,14 +21,20 @@
                 <canvas id="routeCanvas" width="800" height="500"></canvas>
             </div>
 
+            <!-- Panel lateral para controles y estadísticas -->
             <aside class="controls">
+                <!-- Estadísticas y configuración de nodos -->
                 <div class="stats-panel">
-                    <h3>Panel de Control</h3>
-                    <p>Nodos: <span id="nodeCount">0</span></p>
-                    <p>CO₂ Estimado: <span id="co2Stat">--</span></p>
+                    <h3>Configuración de Carga</h3>
+                    <p>Nodos: <span id="nodeCount">0</span> / 9</p>
+                    <div id="nodesList" class="nodes-input-list">
+                    </div>
+                    <hr>
+                    <p>CO₂ Estimado: <span id="co2Stat">--</span> kg</p>
                 </div>
-
-                <button id="btnOptimize" class="primary">Optimizar Ruta (Híbrido)</button>
+            
+                <!-- Botones de acción -->
+                <button id="btnOptimize" class="primary">Optimizar con Pesos</button>
                 <button id="btnClear">Limpiar Mapa</button>
             </aside>
         </main>
@@ -34,6 +42,7 @@
 
     <script src="js/canvas_manager.js"></script>
     <script src="js/app.js"></script>
+    <div id="toast-container" class="toast-container"></div>
 </body>
 
 </html>

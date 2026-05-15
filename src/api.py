@@ -26,35 +26,39 @@ from models.stop import Stop
 from main import run_intelrr_optimization
 
 app = Flask(__name__)
-CORS(app) # Permite que tu HTML se comunique con el servidor Python
+CORS(app, resources={r"/*": {"origins": "*"}}) # Permite que tu HTML se comunique con el servidor Python
 
+# Ruta para recibir los datos del frontend y ejecutar la optimización
 @app.route('/optimize', methods=['POST'])
 def optimize():
-    data = request.json
-    raw_nodes = data.get('nodes', [])
-    capacity = data.get('capacity', 40)
+    try:
+        data = request.json
+        raw_nodes = data.get('nodes', [])
+        capacity = data.get('capacity', 40)
 
-    if not raw_nodes:
-        return jsonify({"error": "No hay nodos"}), 400
+        if not raw_nodes:
+            return jsonify({"error": "No hay nodos"}), 400
 
-    # 1. Convertir JSON a objetos Stop de Python
-    stops = [
-        Stop(n['id'], n['x'], n['y'], n['demand'], n['type']) 
-        for n in raw_nodes
-    ]
+        # 1. Convertir JSON a objetos Stop de Python
+        stops = [
+            Stop(n['id'], n['x'], n['y'], n['demand'], n['type']) 
+            for n in raw_nodes
+        ]
 
-    # 2. Ejecutar el "Cerebro" de IntelRR
-    # Esto corre el Genético y luego la Búsqueda Tabú
-    final_route, stats = run_intelrr_optimization(stops, {'capacity': capacity})
+        # 2. Ejecutar el "Cerebro" de IntelRR
+        # Esto corre el Genético y luego la Búsqueda Tabú
+        final_route, stats = run_intelrr_optimization(stops, {'capacity': capacity})
 
-    # 3. Preparar la respuesta para el Canvas (solo los IDs en orden)
-    optimized_order = [stop.id for stop in final_route]
+        # 3. Preparar la respuesta para el Canvas (solo los IDs en orden)
+        optimized_order = [stop.id for stop in final_route]
 
-    return jsonify({
-        "order": optimized_order,
-        "co2": stats['co2'],
-        "distance": stats['distance']
-    })
-
+        return jsonify({
+            "order": optimized_order,
+            "co2": stats['co2'],
+            "distance": stats['distance']
+        })
+    except Exception as e:
+        print(f"Error en el servidor: {e}") 
+        return jsonify({"error": str(e)}), 500
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

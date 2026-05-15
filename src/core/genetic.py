@@ -45,7 +45,8 @@ class GeneticAlgorithm:
         """Intercambia dos paradas (Swap Mutation)."""
         if random.random() < self.mutation_rate:
             # Seleccionamos dos índices que no sean los depósitos (extremos)
-            idx1, idx2 = random.sample(range(1, len(individual) - 1), 2)
+            if len(individual) > 3: 
+                idx1, idx2 = random.sample(range(1, len(individual) - 1), 2)
             individual[idx1], individual[idx2] = individual[idx2], individual[idx1]
 
         # Retorna la ruta mutada (o sin cambios si no se mutó)

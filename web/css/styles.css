@@ -7,11 +7,11 @@ Se utilizan colores oscuros para el fondo, acentos verdes para resaltar elemento
 /* ------------------------------------------------------ */
 main {
     display: flex;
-    flex-direction: row;
-    /* Mapa a la izquierda, controles a la derecha */
-    gap: 20px;
+    flex-direction: column; /* Apila las filas verticalmente */
+    gap: 25px;
     padding: 20px;
-    align-items: flex-start;
+    max-width: 1200px; /* Ajusta según tu diseño */
+    margin: 0 auto;
 }
 
 :root {
@@ -34,13 +34,101 @@ body {
     margin: 0;
 }
 
-/* Panel de Control Estilo Flotante */
-.stats-panel {
-    background: var(--bg-light);
+/* ------------------------------------------------------ */
+/* Estilo de las secciones principales: Canvas, Panel de Pesos y Panel de Estadísticas
+/* ------------------------------------------------------ */
+.top-row {
+    display: flex;
+    flex-direction: row;
+    /* Canvas y Side-panel lado a lado */
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.canvas-container {
+    flex: 2;
+    /* El canvas ocupa más espacio */
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.side-panel {
+    flex: 1;
+    /* El panel de pesos es más estrecho */
+    min-width: 320px;
+}
+
+.bottom-row {
+    width: 100%;
+    /* La gráfica usa todo el ancho inferior */
+}
+
+.stats-panel-modern {
+    background: #21272c;
+    color: white;
+    padding: 25px;
     border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* ------------------------------------------------------ */
+/* Estilo del título y header */
+/* ------------------------------------------------------ */
+.main-header {
+    width: 100%;
+    text-align: center;
+    padding: 30px 0 10px 0;
+    margin-bottom: 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    /* Línea sutil de división */
+}
+
+.main-title {
+    text-align: center;
+    justify-content: center;
+    width: 100%;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Estilo para la marca principal */
+.brand {
+    font-weight: 800;
+    /* Extra Bold */
+    font-size: 2.2rem;
+    letter-spacing: -1px;
+    color: #2ecc71;
+    /* El verde neón que elegiste */
+    text-transform: uppercase;
+    text-shadow: 0 0 15px rgba(46, 204, 113, 0.3);
+    /* Brillo sutil */
+}
+
+.divider {
+    color: #454d55;
+    font-weight: 200;
+    font-size: 1.8rem;
+}
+
+/* Estilo para el subtítulo */
+.tagline {
+    font-weight: 300;
+    /* Light */
+    font-size: 1.5rem;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+/* Estilo para la pequeña instrucción debajo */
+.instruction {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-top: 5px;
+    font-weight: 400;
 }
 
 /* ------------------------------------------------------ */
@@ -307,4 +395,105 @@ canvas {
 
 .overloaded-bar {
     background: #d32f2f !important;
+}
+
+/* ------------------------------------------------------ */
+/* Estilo del panel de estadísticas y gráficos */
+/* ------------------------------------------------------ */
+.stats-panel-modern {
+    background: #21272c;
+    /* Fondo oscuro coherente */
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    width: 100%;
+}
+
+.stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.stats-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #ffffff;
+    margin: 0;
+}
+
+/* --- ESTILO DE LOS BOTONES (TAB GROUP) --- */
+.tab-group {
+    display: flex;
+    background: #191f24;
+    /* Un poco más oscuro que el panel */
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid #3d464f;
+}
+
+.tab-group input[type="radio"] {
+    display: none;
+    /* Escondemos el radio original */
+}
+
+.tab-group label {
+    padding: 6px 15px;
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+    user-select: none;
+}
+
+/* Efecto cuando está seleccionado */
+.tab-group input[type="radio"]:checked+label {
+    background: #2ecc71;
+    /* Verde neón */
+    color: #000000;
+    /* Texto negro para contraste */
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(46, 204, 113, 0.3);
+}
+
+/* ------------------------------------------------------ */
+/* Estilo de la zona de gráficos */
+/* ------------------------------------------------------ */
+
+/* Estilo del chart */
+.chart-wrapper {
+    position: relative;
+    height: 300px; /* Asegúrate de que tenga una altura fija */
+    width: 100%;
+}
+
+.metric-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    border-left: 4px solid #2ecc71;
+    /* Un toque verde para lo ecológico */
+}
+
+.metric-card small {
+    display: block;
+    color: #888;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+}
+
+.metric-card p {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 5px 0 0 0;
+    color: #fff;
 }

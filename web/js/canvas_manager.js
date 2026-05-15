@@ -85,14 +85,12 @@ function updateDemand(id, value) {
     const node = nodes.find(n => n.id === id);
     if (node) {
         node.demand = parseFloat(value) || 0;
-
-        // Llamar a la función de cálculo total (debe estar en app.js o aquí)
+        // IMPORTANTE: Llamamos a la función que acabamos de crear en app.js
         if (typeof calculateTotalWeight === "function") {
             calculateTotalWeight();
         }
     }
 }
-
 // --- DIBUJO ---
 function drawNode(node) {
     ctx.beginPath();

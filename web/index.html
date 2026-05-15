@@ -14,69 +14,141 @@
 <body>
     <!-- Contenedor principal que organiza el header, el canvas para el mapa de rutas y el panel lateral de controles y estadísticas. -->
     <div class="container">
-        <header>
-            <h1>IntelRR: Visualizador de Ruta Óptima</h1>
-            <p>Haz clic en el mapa para añadir el Depósito (primero) y luego las Paradas.</p>
+        <!-- Header con el título del proyecto y una breve descripción de la funcionalidad de la aplicación. -->
+        <header class="main-header">
+            <h1 class="main-title">
+                <span class="brand">IntelRR</span>
+                <span class="divider">|</span>
+                <span class="tagline">Visualizador de Ruta Óptima</span>
+            </h1>
+            <p class="instruction">Optimización logística basada en algoritmos genéticos y huella de carbono.</p>
         </header>
 
         <main>
-            <!-- Contenedor del canvas para el mapa de rutas -->
-            <div class="canvas-container">
-                <canvas id="routeCanvas" width="800" height="500"></canvas>
+            <div class="top-row">
+                <!-- Contenedor del canvas para el mapa de rutas -->
+                <div class="canvas-container">
+                    <canvas id="routeCanvas" width="800" height="500"></canvas>
+                </div>
+
+                <aside class="side-panel">
+                    <!-- Estadísticas y configuración de nodos -->
+                    <div class="stats-panel">
+                        <h3>Configuración de Vehículo</h3>
+                    
+                        <!-- Dropdown para seleccionar el tipo de vehículo, con datos de peso para calcular el impacto ecológico. Al cambiar la selección, se actualizan las estadísticas de carga y capacidad. -->
+                        <select id="vehicleSelect" onchange="updateVehicleStats()">
+                            <option value="40" data-weight="150">Motocicleta (40kg)</option>
+                            <option value="600" data-weight="1200">Furgoneta Pequeña (600kg)</option>
+                            <option value="1500" data-weight="2000" selected>Furgoneta Carga (1,500kg)</option>
+                            <option value="3500" data-weight="4500">Camión Ligero (3,500kg)</option>
+                            <option value="12000" data-weight="8000">Camión Rígido (12,000kg)</option>
+                            <option value="25000" data-weight="15000">Tráiler (25,000kg)</option>
+                        </select>
+                    
+                        <!-- Barra de carga que muestra la carga total actual en relación con la capacidad máxima del vehículo seleccionado. 
+                                        Se actualiza dinámicamente a medida que se añaden paradas y se asignan demandas. -->
+                        <div class="load-bar-container">
+                            <p>Carga Total: <span id="totalLoad">0</span> / <span id="maxCapacity">1500</span> kg</p>
+                            <div id="loadProgress" class="load-progress"></div>
+                        </div>
+                    
+                        <!-- Contenedor para la lista de nodos añadidos, mostrando cada parada con su demanda editable. El depósito se muestra como un nodo especial sin demanda editable. -->
+                        <div id="nodesList" class="nodes-input-list">
+                        </div>
+                    
+                        <!-- Resumen de peso total acumulado, que se utiliza para calcular el impacto ecológico. 
+                                         Se muestra una barra de progreso que indica visualmente el peso total en relación con un umbral máximo (por ejemplo, la capacidad del vehículo). -->
+                        <div class="weight-summary-panel">
+                    
+                            <!-- Información sobre el peso total acumulado -->
+                            <div class="weight-info">
+                                <span>Peso Total Acumulado:</span>
+                                <span id="totalWeightDisplay">0</span> kg
+                            </div>
+                    
+                            <!-- Barra de progreso para el peso total -->
+                            <div class="weight-bar-bg">
+                                <div id="weightProgressBar" class="weight-bar-fill"></div>
+                            </div>
+                        </div>
+                    
+                        <!-- Botones de acción agrupados en un contenedor para mejorar la organización visual. -->
+                        <div class="control-buttons">
+                            <button id="btnOptimize" class="primary">Optimizar con Pesos</button>
+                            <button id="btnClear">Limpiar Mapa</button>
+                        </div>
+                    </div>
+                </aside>
             </div>
-                <!-- Estadísticas y configuración de nodos -->
-                <div class="stats-panel">
-                    <h3>Configuración de Vehículo</h3>
 
-                    <!-- Dropdown para seleccionar el tipo de vehículo, con datos de peso para calcular el impacto ecológico. Al cambiar la selección, se actualizan las estadísticas de carga y capacidad. -->
-                    <select id="vehicleSelect" onchange="updateVehicleStats()">
-                        <option value="40" data-weight="150">Motocicleta (40kg)</option>
-                        <option value="600" data-weight="1200">Furgoneta Pequeña (600kg)</option>
-                        <option value="1500" data-weight="2000" selected>Furgoneta Carga (1,500kg)</option>
-                        <option value="3500" data-weight="4500">Camión Ligero (3,500kg)</option>
-                        <option value="12000" data-weight="8000">Camión Rígido (12,000kg)</option>
-                        <option value="25000" data-weight="15000">Tráiler (25,000kg)</option>
-                    </select>
-                
-                    <!-- Barra de carga que muestra la carga total actual en relación con la capacidad máxima del vehículo seleccionado. 
-                    Se actualiza dinámicamente a medida que se añaden paradas y se asignan demandas. -->
-                    <div class="load-bar-container">
-                        <p>Carga Total: <span id="totalLoad">0</span> / <span id="maxCapacity">1500</span> kg</p>
-                        <div id="loadProgress" class="load-progress"></div>
-                    </div>
-                
-                    <!-- Contenedor para la lista de nodos añadidos, mostrando cada parada con su demanda editable. El depósito se muestra como un nodo especial sin demanda editable. -->
-                    <div id="nodesList" class="nodes-input-list">
-                    </div>
-                    
-                    <!-- Resumen de peso total acumulado, que se utiliza para calcular el impacto ecológico. 
-                     Se muestra una barra de progreso que indica visualmente el peso total en relación con un umbral máximo (por ejemplo, la capacidad del vehículo). -->
-                    <div class="weight-summary-panel">
+            <!-- Fila inferior para estadísticas adicionales o gráficos de rendimiento -->
+            <div class="bottom-row">
+                <!-- Panel de estadísticas moderno -->
+                <!-- Este panel muestra gráficos y estadísticas sobre el rendimiento del algoritmo de optimización. -->
+                <div class="stats-panel-modern">
 
-                        <!-- Información sobre el peso total acumulado -->
-                        <div class="weight-info">
-                            <span>Peso Total Acumulado:</span>
-                            <span id="totalWeightDisplay">0</span> kg
+                    <!-- Métricas clave presentadas en un formato de tarjeta para una visualización rápida y clara de los resultados de la optimización, incluyendo distancia total, emisiones de CO2 y tiempo estimado. -->
+                    <div class="metrics-grid"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div class="metric-card">
+                            <small>Distancia Total</small>
+                            <p><span id="stat-distance">0.0</span> km</p>
+                        </div>
+                        
+                        <!-- La métrica de emisiones de CO2 se calcula en función del peso total acumulado y la distancia, utilizando factores de emisión específicos para cada tipo de vehículo. Se actualiza dinámicamente a medida que se optimiza la ruta. -->
+                        <div class="metric-card">
+                            <small>Emisiones CO2</small>
+                            <p><span id="stat-co2">0.0</span> kg</p>
                         </div>
 
-                        <!-- Barra de progreso para el peso total -->
-                        <div class="weight-bar-bg">
-                            <div id="weightProgressBar" class="weight-bar-fill"></div>
+                        <!-- La métrica de tiempo estimado se calcula en función de la distancia total y la velocidad promedio del vehículo seleccionado, considerando también el tiempo de carga y descarga en cada parada. Se muestra en minutos para una comprensión rápida. -->
+                        <div class="metric-card">
+                            <small>Tiempo Estimado</small>
+                            <p><span id="stat-time">0</span> min</p>
                         </div>
                     </div>
-                    
-                    <!-- Botones de acción agrupados en un contenedor para mejorar la organización visual. -->
-                    <div class="control-buttons">
-                        <button id="btnOptimize" class="primary">Optimizar con Pesos</button>
-                        <button id="btnClear">Limpiar Mapa</button>
+
+                    <!-- Sección de encabezado para el análisis de rendimiento -->
+                    <div class="stats-header">
+                        <h3 class="stats-title">Análisis de Rendimiento</h3>
+                
+                        <!-- Grupo de pestañas para seleccionar el tipo de estadística a mostrar -->
+                        <div class="tab-group">
+                            <input type="radio" name="stat-selector" id="tab-fitness" value="fitness" checked
+                                onchange="updateChart(this.value)">
+                            <label for="tab-fitness">Fitness</label>
+                
+                            <input type="radio" name="stat-selector" id="tab-convergence" value="convergence"
+                                onchange="updateChart(this.value)">
+                            <label for="tab-convergence">Convergencia</label>
+                
+                            <input type="radio" name="stat-selector" id="tab-time" value="time" onchange="updateChart(this.value)">
+                            <label for="tab-time">Tiempo</label>
+                
+                            <input type="radio" name="stat-selector" id="tab-baseline" value="baseline"
+                                onchange="updateChart(this.value)">
+                            <label for="tab-baseline">Baseline</label>
+                        </div>
+                    </div>
+                
+                    <!-- Área para mostrar el gráfico de rendimiento -->
+                    <div class="chart-wrapper">
+                        <canvas id="performanceChart"></canvas>
                     </div>
                 </div>
+            </div>
             </aside>
         </main>
     </div>
 
+    <!-- Scripts necesarios para la funcionalidad de la aplicación, incluyendo Chart.js para las gráficas de rendimiento y los scripts personalizados para manejar el canvas y la lógica de la aplicación. -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Scripts personalizados -->
     <script src="js/canvas_manager.js"></script>
     <script src="js/app.js"></script>
+
     <div id="toast-container" class="toast-container"></div>
 </body>
 

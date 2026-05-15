@@ -20,45 +20,52 @@ Y finalmente, el usuario puede repetir el proceso para seguir optimizando rutas 
 Esta API es esencial para conectar la lógica de optimización con la interfaz de usuario de manera fluida y eficiente.
 Asi es como funciona.
 """
+
+# Librerías necesarias para el servidor y la optimización
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from models.stop import Stop
 from main import run_intelrr_optimization
+import json
+import time
 
+# Inicialización del servidor Flask
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}) # Permite que tu HTML se comunique con el servidor Python
+# Permite que tu HTML se comunique con el servidor Python sin problemas de CORS
+CORS(app, resources={r"/*": {"origins": "*"}}) 
 
 # Ruta para recibir los datos del frontend y ejecutar la optimización
 @app.route('/optimize', methods=['POST'])
 def optimize():
     try:
-        data = request.json
+        data = request.get_json()
         raw_nodes = data.get('nodes', [])
         capacity = data.get('capacity', 40)
 
         if not raw_nodes:
             return jsonify({"error": "No hay nodos"}), 400
 
-        # 1. Convertir JSON a objetos Stop de Python
+        # Convertir a objetos Stop
         stops = [
-            Stop(n['id'], n['x'], n['y'], n['demand'], n['type']) 
+            Stop(n['id'], n['x'], n['y'], n['demand'], n.get('type', 'stop')) 
             for n in raw_nodes
         ]
 
-        # 2. Ejecutar el "Cerebro" de IntelRR
-        # Esto corre el Genético y luego la Búsqueda Tabú
+        # Una sola llamada al motor principal
         final_route, stats = run_intelrr_optimization(stops, {'capacity': capacity})
 
-        # 3. Preparar la respuesta para el Canvas (solo los IDs en orden)
-        optimized_order = [stop.id for stop in final_route]
-
+        # Enviamos TODO al frontend: orden, distancia, co2, historial y tiempo
         return jsonify({
-            "order": optimized_order,
-            "co2": stats['co2'],
-            "distance": stats['distance']
+            "order": [s.id for s in final_route],
+            "distance": stats.get('distance', 0),
+            "co2": stats.get('co2', 0),
+            "history": stats.get('history', []),  # Esto activa la gráfica
+            "execution_time": stats.get('execution_time', 0)
         })
+
     except Exception as e:
         print(f"Error en el servidor: {e}") 
         return jsonify({"error": str(e)}), 500
+    
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

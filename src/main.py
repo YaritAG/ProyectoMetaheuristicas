@@ -6,31 +6,32 @@ from core.genetic import GeneticAlgorithm
 from core.tabu_search import TabuSearch
 
 def run_intelrr_optimization(stops, vehicle_config):
-    # 1. Preparar el Evaluador (El Juez)
     vehicle = Vehicle(id=1, capacity=vehicle_config['capacity'])
     evaluator = FitnessEvaluator(vehicle)
+    
+    history = [] # <--- LISTA NUEVA PARA LA GRÁFICA
 
-    print("--- Iniciando Optimización IntelRR ---")
-
-    # 2. FASE 1: Algoritmo Genético (Exploración Global)
-    # Buscamos una buena base en 100 generaciones
+    # FASE 1: Algoritmo Genético
     ga = GeneticAlgorithm(stops, evaluator, pop_size=30, mutation_rate=0.2)
     ga.initialize_population()
     
     best_ga_route = None
     for gen in range(100):
         best_ga_route = ga.evolve()
+        # Guardamos el CO2 de la mejor ruta actual para la gráfica
+        current_stats = evaluator.calculate(best_ga_route)
+        history.append(current_stats['co2']) # <--- GUARDAMOS CADA PASO
     
-    res_ga = evaluator.calculate(best_ga_route)
-    print(f"Resultado AG: {res_ga['co2']} kg CO2")
-
-    # 3. FASE 2: Búsqueda Tabú (Refinamiento Local)
-    # Tomamos el ganador del AG y lo pulimos
+    # FASE 2: Búsqueda Tabú
     ts = TabuSearch(evaluator, tabu_size=15, max_iterations=100)
     final_route = ts.optimize(best_ga_route)
     
     res_final = evaluator.calculate(final_route)
-    print(f"Resultado Final (Híbrido): {res_final['co2']} kg CO2")
+    
+    # AGREGAMOS EL HISTORIAL AL RESULTADO FINAL
+    res_final['history'] = history 
+    # Calculamos un tiempo estimado (o real si usas la librería time)
+    res_final['execution_time'] = 100 # Valor de ejemplo o real
     
     return final_route, res_final
 

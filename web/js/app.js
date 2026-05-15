@@ -39,17 +39,18 @@ function calculateTotalWeight() {
 // Funcion para reiniciar las estadísticas y la gráfica, utilizada cuando el usuario limpia el canvas o inicia una nueva optimización. 
 // Esta función restablece los valores mostrados en el panel de métricas y limpia los datos de la gráfica de rendimiento para prepararla para nuevos resultados.
 function resetStats() {
-    // 1. Reiniciar contadores visuales
-    document.getElementById('stat-distance').innerText = "0.0";
-    document.getElementById('stat-co2').innerText = "0.0";
-    document.getElementById('stat-time').innerText = "0";
+    // Reiniciamos los valores de las métricas
+    const d = document.getElementById('stat-distance');
+    const c = document.getElementById('stat-co2');
+    const t = document.getElementById('stat-time');
 
-    // 2. Limpiar datos de la gráfica
+    if (d) d.innerText = "0.0";
+    if (c) c.innerText = "0.0";
+    if (t) t.innerText = "0";
+
     if (metricsChart) {
         metricsChart.data.labels = [];
-        metricsChart.data.datasets.forEach((dataset) => {
-            dataset.data = [];
-        });
+        metricsChart.data.datasets[0].data = [];
         metricsChart.update();
     }
 }
@@ -87,21 +88,47 @@ document.getElementById('btnOptimize').addEventListener('click', async () => {
             })
         });
 
-        // 3. Manejo de la respuesta
         const textResponse = await response.text();
 
-        // Limpiamos el JSON por si el servidor mandó un "Infinity"
+        // Ahora sí puedes usar textResponse
         const sanitized = textResponse.replace(/Infinity/g, "999999");
         const result = JSON.parse(sanitized);
 
-        if (response.ok && result.order && result.order.length > 0) {
-            // Actualizamos el CO2 en el panel
-            const co2Display = document.getElementById('co2Stat');
-            if (co2Display) co2Display.innerText = result.co2;
+        // AÑADE ESTA LÍNEA AQUÍ:
+        console.log("Datos recibidos de Flask:", result)
 
-            // Dibujamos la ruta (función en canvas_manager.js)
+        // Comprobamos que la respuesta es válida y contiene la ruta optimizada
+        if (response.ok && result.order) {
+            // Actualización de Tarjetas (Km y CO2)
+            const distElem = document.getElementById('stat-distance');
+            const co2Elem = document.getElementById('stat-co2');
+            const timeElem = document.getElementById('stat-time');
+
+            // Si el servidor no manda la distancia o el CO2, mostramos 0.0 para evitar confusión
+            if (distElem) distElem.innerText = result.distance.toFixed(2);
+            if (co2Elem) co2Elem.innerText = result.co2.toFixed(2);
+
+            // Si el servidor no manda el tiempo, lo calculamos o usamos el recibido
+            if (timeElem) {
+                timeElem.innerText = result.execution_time || "0";
+            }
+
+            // Actualización de la Gráfica de Rendimiento
+            if (result.history && Array.isArray(result.history) && metricsChart) {
+                // Generamos etiquetas dinámicas según la cantidad de datos en el historial
+                metricsChart.data.labels = result.history.map((_, i) => `G${i + 1}`);
+                metricsChart.data.datasets[0].data = result.history;
+
+                // Forzamos el redibujado de Chart.js
+                metricsChart.update();
+            }
+
+            // Dibujo de la ruta optimizada en el canvas
             drawRoute(result.order);
+            // Mensaje de éxito 
             showToast("✅ Ruta optimizada con éxito.");
+
+        // De lo contrario, si el servidor responde pero no con la ruta optimizada, mostramos un mensaje de error específico para esa situación
         } else {
             showToast("Error: El motor no pudo encontrar una ruta viable.");
         }

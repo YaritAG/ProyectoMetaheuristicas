@@ -1,48 +1,50 @@
 // Codigo que funciona como orquestador principal para la aplicación web, integrando el canvas y la comunicación con el backend Flask. 
 // Este código maneja la interacción del usuario, envía los datos al backend para optimización y actualiza la interfaz con los resultados obtenidos.
 
+/**
+ * Evento principal para enviar la configuración al backend de Python.
+ */
 document.getElementById('btnOptimize').addEventListener('click', async () => {
-    // 1. Validaciones previas
+    // Validación mínima: Depósito + 1 Parada
     if (nodes.length < 2) {
         return showToast("Añade al menos el depósito y una parada.");
     }
 
-    const totalLoad = nodes.reduce((sum, node) => sum + (node.demand || 0), 0);
     const vehicleSelector = document.getElementById('vehicleSelect');
     const capacity = parseInt(vehicleSelector.value);
+    // Capturamos el peso base (tara) del dataset del option seleccionado
     const vehicleEmptyWeight = parseInt(vehicleSelector.options[vehicleSelector.selectedIndex].dataset.weight);
+    const totalLoad = nodes.reduce((sum, node) => sum + (node.demand || 0), 0);
 
-    // 2. Bloqueo preventivo si hay sobrecarga antes de enviar
+    // Bloqueo preventivo: No enviamos la petición si hay sobrecarga
     if (totalLoad > capacity) {
-        return showToast(`⚠️ No se puede optimizar: La carga (${totalLoad}kg) supera la capacidad del vehículo.`);
+        return showToast(`⚠️ Capacidad excedida: ${totalLoad}kg de ${capacity}kg permitidos.`);
     }
 
     try {
-        // 3. Enviar datos al backend
         const response = await fetch('http://localhost:5000/optimize', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 nodes: nodes,
                 capacity: capacity,
-                vehicleEmptyWeight: vehicleEmptyWeight // Enviamos la tara del coche
+                vehicleEmptyWeight: vehicleEmptyWeight // Variable crucial para el cálculo de CO2
             })
         });
 
-        // 4. Procesar respuesta de forma segura
+        // Leemos como texto para limpiar posibles valores "Infinity" que rompen JSON.parse
         const textResponse = await response.text();
-
-        // Limpieza de JSON: Si el backend envía Infinity por error, lo convertimos en un número alto
         const sanitizedText = textResponse.replace(/Infinity/g, "999999");
         const result = JSON.parse(sanitizedText);
 
         if (response.ok && result.co2 < 999999) {
-            // Éxito: Actualizar UI y dibujar
-            document.getElementById('co2Stat').innerText = result.co2;
-            drawRoute(result.order);
+            // Actualización de estadísticas en el panel oscuro
+            const co2Elem = document.getElementById('co2Stat');
+            if (co2Elem) co2Elem.innerText = result.co2;
+
+            drawRoute(result.order); // Función de dibujo en canvas_manager
             showToast("✅ Ruta optimizada con éxito.");
         } else {
-            // Error controlado desde el servidor
             showToast("Error en el motor: " + (result.error || "La ruta es inviable"));
         }
 
@@ -51,6 +53,12 @@ document.getElementById('btnOptimize').addEventListener('click', async () => {
         showToast("Fallo de conexión con el servidor de IntelRR.");
     }
 });
+
+/**
+ * Listeners adicionales para asegurar que la UI sea reactiva
+ */
+// Si el usuario cambia de vehículo, la barra de carga debe reaccionar al nuevo límite
+document.getElementById('vehicleSelect').addEventListener('change', calculateTotalWeight);
 
 // Funcion para dibujar la ruta optimizada en el canvas, conectando los nodos según el orden recibido del backend. Se utiliza una línea punteada para representar la ruta y se dibujan flechas para indicar la dirección del recorrido.
 function drawRoute(order) {
@@ -125,31 +133,33 @@ function calculateTotalLoad() {
 
 // Funcion para calcular el peso total y mostrarlo en la interfaz, comparándolo con la capacidad del vehículo seleccionado. 
 // Si la carga total supera la capacidad, se muestra una advertencia visual y un toast informativo para alertar al usuario sobre la sobrecarga.
+// Función para calcular el peso total y actualizar la barra (DEBE SER GLOBAL)
 function calculateTotalWeight() {
-    // 1. Sumar todas las demandas actuales de los nodos
+    const totalWeightDisplay = document.getElementById('totalWeightDisplay');
+    const progressBar = document.getElementById('weightProgressBar');
+    const vehicleSelector = document.getElementById('vehicleSelect');
+
+    // Validación de elementos del DOM
+    if (!totalWeightDisplay || !progressBar || !vehicleSelector) return;
+
+    // Sumar demandas de los nodos (asegúrate que 'nodes' sea global en canvas_manager.js)
     const total = nodes.reduce((sum, node) => sum + (node.demand || 0), 0);
+    const capacity = parseInt(vehicleSelector.value);
 
-    // 2. Obtener la capacidad del vehículo seleccionado
-    const selector = document.getElementById('vehicleSelect');
-    const capacity = parseInt(selector.value);
+    // Actualizar texto
+    totalWeightDisplay.innerText = total;
 
-    // 3. Actualizar el texto en pantalla
-    const display = document.getElementById('totalWeightDisplay');
-    const bar = document.getElementById('weightProgressBar');
-
-    display.innerText = total;
-
-    // 4. Calcular porcentaje de la barra
+    // Calcular porcentaje
     const percentage = Math.min((total / capacity) * 100, 100);
-    bar.style.width = percentage + "%";
+    progressBar.style.width = percentage + "%";
 
-    // 5. Cambiar colores si hay sobrecarga
+    // Colores de alerta
     if (total > capacity) {
-        display.classList.add('overloaded-text');
-        bar.classList.add('overloaded-bar');
+        totalWeightDisplay.style.color = "#ff5252";
+        progressBar.style.backgroundColor = "#ff5252";
     } else {
-        display.classList.remove('overloaded-text');
-        bar.classList.remove('overloaded-bar');
+        totalWeightDisplay.style.color = "#2ecc71";
+        progressBar.style.backgroundColor = "#2ecc71";
     }
 }
 

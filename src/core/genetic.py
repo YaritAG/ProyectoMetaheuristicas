@@ -1,5 +1,6 @@
 # Código de la cracion de la población, crossover y mutación 
 import random
+import copy
 
 # Clase para el algoritmo genético, que se encargará de crear la población inicial, realizar el crossover y la mutación para generar nuevas rutas.
 class GeneticAlgorithm:
@@ -54,20 +55,33 @@ class GeneticAlgorithm:
     
     # Se ejecuta una generación del algoritmo genético, que incluye la selección de los mejores individuos, el crossover para generar nuevos individuos y la mutación para introducir variabilidad.
     def evolve(self):
-        """Ejecuta una generación (Selección, Cruce y Mutación)."""
-        # 1. Evaluar y ordenar por CO2 (de menor a mayor)
+        """Ejecuta una generación mejorada para evitar el estancamiento."""
+        # 1. Evaluar y ordenar por CO2
         self.population.sort(key=lambda x: self.evaluator.calculate(x)['co2'])
         
-        # 2. Elitismo: mantenemos a los 2 mejores sin cambios
-        new_gen = self.population[:2]
+        # 2. Elitismo reforzado (Copiamos para no modificar los originales)
+        new_gen = [copy.deepcopy(self.population[0]), copy.deepcopy(self.population[1])]
         
-        # 3. Completar la población con hijos
+        # 3. Completar la población
         while len(new_gen) < self.pop_size:
-            p1, p2 = random.sample(self.population[:10], 2) # Torneo simple entre los mejores
+            # CAMBIO: Torneo sobre TODA la población, no solo los top 10
+            p1 = self.selection_tournament()
+            p2 = self.selection_tournament()
+            
+            # Aseguramos que el hijo sea una copia nueva
             child = self.crossover(p1, p2)
             child = self.mutate(child)
+            
             new_gen.append(child)
             
-        # 4. Reemplazar la población actual con la nueva generación    
+        # 4. Reemplazo total
         self.population = new_gen
-        return self.population[0] # Retorna el mejor de la generación
+        return self.population[0]
+
+    def selection_tournament(self, k=3):
+        """Selecciona un padre al azar compitiendo entre k individuos."""
+        # Elegimos k aspirantes al azar de TODA la población
+        aspirantes = random.sample(self.population, k)
+        # El que tenga mejor CO2 (menor valor) gana el torneo
+        aspirantes.sort(key=lambda x: self.evaluator.calculate(x)['co2'])
+        return aspirantes[0]

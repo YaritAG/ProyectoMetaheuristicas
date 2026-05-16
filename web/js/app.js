@@ -1,6 +1,9 @@
 // Codigo que funciona como orquestador principal para la aplicación web, integrando el canvas y la comunicación con el backend Flask.
 // Este código maneja la interacción del usuario, envía los datos al backend para optimización y actualiza la interfaz con los resultados obtenidos.
 
+// Dejamos esta variable global para almacenar el último resultado recibido del backend, lo que nos permitirá actualizar la gráfica de rendimiento y otros elementos de la interfaz de manera dinámica según la métrica seleccionada por el usuario.
+let lastResult = null;
+
 // Funcion para calcular el peso total y mostrarlo en la interfaz, comparándolo con la capacidad del vehículo seleccionado.
 // Si la carga total supera la capacidad, se muestra una advertencia visual y un toast informativo para alertar al usuario sobre la sobrecarga.
 /**
@@ -104,9 +107,27 @@ document.getElementById('btnOptimize').addEventListener('click', async () => {
             const co2Elem = document.getElementById('stat-co2');
             const timeElem = document.getElementById('stat-time');
 
-            // Si el servidor no manda la distancia o el CO2, mostramos 0.0 para evitar confusión
+            // 1. PRIMERO guardamos los datos (esto quita el error de "not defined")
+            lastResult = result;
+
+            // 2. Actualizamos las tarjetas de texto
             if (distElem) distElem.innerText = result.distance.toFixed(2);
             if (co2Elem) co2Elem.innerText = result.co2.toFixed(2);
+            if (timeElem) timeElem.innerText = result.execution_time || "0";
+
+            // 3. Dibujamos la ruta y disparamos la gráfica
+            drawRoute(result.order);
+
+            // NOTA: Usa SOLO un nombre de función. Si tu función se llama updateChart, usa ese.
+            if (metricsChart) {
+                // Generamos las etiquetas X (Generación 1, 2, 3...)
+                const labels = (result.history_fitness || result.history || []).map((_, i) => `G${i + 1}`);
+                metricsChart.data.labels = labels;
+
+                updateChart('fitness'); // Aquí ya no fallará porque lastResult ya tiene datos
+            }
+
+            showToast("✅ Ruta optimizada con éxito.");
 
             // Si el servidor no manda el tiempo, lo calculamos o usamos el recibido
             if (timeElem) {
@@ -123,10 +144,18 @@ document.getElementById('btnOptimize').addEventListener('click', async () => {
                 metricsChart.update();
             }
 
+            // Si el servidor envía datos específicos para cada métrica, los actualizamos también (esto es opcional pero mejora la experiencia)
+            if (result.history_fitness && metricsChart) {
+                metricsChart.data.labels = result.history_fitness.map((_, i) => `G${i + 1}`);
+                updateChart('fitness'); // Esto llamará a tu nueva función y dibujará todo
+            }
+
+            // Guardamos el resultado completo para futuras actualizaciones de la gráfica según la métrica seleccionada
+            lastResult = result;
+            // Actualizamos la gráfica para mostrar el fitness (distancia total) de la ruta optimizada
+            updateChart('fitness'); 
             // Dibujo de la ruta optimizada en el canvas
             drawRoute(result.order);
-            // Mensaje de éxito 
-            showToast("✅ Ruta optimizada con éxito.");
 
         // De lo contrario, si el servidor responde pero no con la ruta optimizada, mostramos un mensaje de error específico para esa situación
         } else {
@@ -138,6 +167,61 @@ document.getElementById('btnOptimize').addEventListener('click', async () => {
         showToast("Fallo de conexión con el servidor de IntelRR.");
     }
 });
+
+/**
+ * Actualiza la visualización de la gráfica según la métrica seleccionada.
+ * @param {string} viewType - El tipo de estadística ('fitness', 'convergence', 'time', 'baseline')
+ */
+
+// Funcion para actualizar la gráfica de rendimiento según la métrica seleccionada por el usuario, utilizando los datos almacenados en lastResult para mostrar la información correspondiente a cada métrica (fitness, convergencia, tiempo de ejecución, línea base).
+//  La función también maneja casos donde no hay datos disponibles para evitar errores.
+function updateChart(viewType) {
+    // 1. Guardia de seguridad: evita errores si no hay datos
+    if (!lastResult || !metricsChart) {
+        console.warn("⚠️ Intentando actualizar gráfica sin datos de optimización.");
+        return;
+    }
+
+    let dataToDisplay = [];
+    let label = "";
+    let color = "";
+
+    // 2. Selección de datos y estilo según la pestaña pulsada
+    switch (viewType) {
+        case 'fitness':
+            label = 'Emisiones CO2 (kg)';
+            color = '#2ecc71'; // Esmeralda
+            dataToDisplay = lastResult.history_fitness || [];
+            break;
+        case 'convergence':
+            label = 'Índice de Convergencia';
+            color = '#e67e22'; // Zanahoria
+            dataToDisplay = lastResult.history_convergence || [];
+            break;
+        case 'time':
+            label = 'Tiempo de Ejecución (ms)';
+            color = '#3498db'; // Belice
+            dataToDisplay = lastResult.history_time || [];
+            break;
+        case 'baseline':
+            label = 'Línea Base (Referencia)';
+            color = '#95a5a6'; // Gris
+            dataToDisplay = lastResult.history_baseline || [];
+            break;
+        default:
+            console.error("Vista no reconocida:", viewType);
+            return;
+    }
+
+    // 3. Aplicación de cambios al objeto Chart.js
+    metricsChart.data.datasets[0].label = label;
+    metricsChart.data.datasets[0].borderColor = color;
+    metricsChart.data.datasets[0].backgroundColor = color + "33"; // Color con 20% transparencia
+    metricsChart.data.datasets[0].data = dataToDisplay;
+
+    // 4. Renderizado
+    metricsChart.update();
+}
 
 // Listener para actualizar la barra si el usuario cambia el tipo de vehículo
 document.getElementById('vehicleSelect').addEventListener('change', calculateTotalWeight);
@@ -272,26 +356,6 @@ function initPerformanceChart() {
 
     metricsChart.data.labels = []; // Limpia las etiquetas de generaciones
     metricsChart.data.datasets[0].data = []; // Limpia los datos de fitness
-    metricsChart.update();
-}
-
-// Esta función se activa cuando haces clic en los botones de la gráfica
-// Permite cambiar entre diferentes vistas de datos (fitness, convergencia, etc.) actualizando la gráfica en consecuencia. Se espera que los datos específicos para cada vista estén disponibles en variables o se obtengan del backend según sea necesario.
-function updateChart(viewType) {
-    if (!metricsChart) return;
-
-    // Lógica para cambiar los datos mostrados
-    if (viewType === 'fitness') {
-        metricsChart.data.datasets[0].label = 'Fitness';
-        metricsChart.data.datasets[0].borderColor = '#2ecc71';
-        // metricsChart.data.datasets[0].data = datos_fitness;
-
-    // Aquí debería actualizar los datos de la gráfica según la vista seleccionada
-    } else if (viewType === 'convergence') {
-        metricsChart.data.datasets[0].label = 'Convergencia';
-        metricsChart.data.datasets[0].borderColor = '#e67e22';
-    }
-
     metricsChart.update();
 }
 

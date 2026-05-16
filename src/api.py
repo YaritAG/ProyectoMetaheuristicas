@@ -45,22 +45,25 @@ def optimize():
         if not raw_nodes:
             return jsonify({"error": "No hay nodos"}), 400
 
-        # Convertir a objetos Stop
+        # 1. Convertir a objetos Stop
         stops = [
             Stop(n['id'], n['x'], n['y'], n['demand'], n.get('type', 'stop')) 
             for n in raw_nodes
         ]
 
-        # Una sola llamada al motor principal
+        # 2. Ejecutar la optimización (Aquí stats ya trae los 4 historiales)
         final_route, stats = run_intelrr_optimization(stops, {'capacity': capacity})
 
-        # Enviamos TODO al frontend: orden, distancia, co2, historial y tiempo
+        # 3. Respuesta al frontend corregida
         return jsonify({
             "order": [s.id for s in final_route],
             "distance": stats.get('distance', 0),
             "co2": stats.get('co2', 0),
-            "history": stats.get('history', []),  # Esto activa la gráfica
-            "execution_time": stats.get('execution_time', 0)
+            "execution_time": stats.get('execution_time', 0),
+            "history_fitness": stats.get('history_fitness', []), # CO2
+            "history_convergence": stats.get('history_convergence', []), # Eficiencia
+            "history_time": stats.get('history_time', []), # Ms
+            "history_baseline": stats.get('history_baseline', []) # Referencia
         })
 
     except Exception as e:

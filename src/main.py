@@ -6,55 +6,65 @@ from core.genetic import GeneticAlgorithm
 from core.tabu_search import TabuSearch
 import time
 
+
 # Funcion principal que conecta todo el proceso de optimización
 def run_intelrr_optimization(stops, vehicle_config):
-    # 1. Iniciamos el cronómetro real para el panel de "Tiempo Estimado"
+    # Tiempo de inicio para medir la duración total del proceso
     start_time = time.time()
     
+    # Creamos el vehículo y el evaluador de fitness con la configuración dada
     vehicle = Vehicle(id=1, capacity=vehicle_config['capacity'])
     evaluator = FitnessEvaluator(vehicle)
     
-    history = [] 
+    # Inicializamos las 3 listas de historial
+    history_fitness = []
+    history_convergence = []
+    history_time = []
+    
     mejor_co2_hasta_ahora = float('inf')
 
-    print("--- Iniciando Optimización IntelRR ---")
-
-    # FASE 1: Algoritmo Genético (Exploración Global)
+    # Configuración del Algoritmo Genético
     ga = GeneticAlgorithm(stops, evaluator, pop_size=30, mutation_rate=0.2)
     ga.initialize_population()
     
-    best_ga_route = None
-    
-    # Bucle para ejecutar varias generaciones del AG y mantener un historial de la mejor ruta encontrada hasta el momento.
-    # Esto es útil para la gráfica de evolución del CO2 en el frontend.
+    # BUCLE DE GENERACIONES
     for gen in range(100):
-        best_ga_route = ga.evolve()
-        current_stats = evaluator.calculate(best_ga_route)
+        best_route_gen = ga.evolve()
+        stats = evaluator.calculate(best_route_gen)
         
-        if current_stats['co2'] < mejor_co2_hasta_ahora:
-            mejor_co2_hasta_ahora = current_stats['co2']
-            print(f"Gen {gen}: ¡Mejora detectada! -> {mejor_co2_hasta_ahora}") # Mira tu terminal de VS Code
+        # Guardamos el mejor CO2 encontrado hasta este punto (Fitness)
+        if stats['co2'] < mejor_co2_hasta_ahora:
+            mejor_co2_hasta_ahora = stats['co2']
         
-        history.append(mejor_co2_hasta_ahora) 
+        # Guardamos el mejor CO2 de esta generación en el historial de fitness
+        history_fitness.append(mejor_co2_hasta_ahora)
+        
+        # Guardamos la eficiencia (Convergencia)
+        # Si no tienes 'efficiency' en el fitness.py, puedes usar stats['co2'] / stats['distance']
+        history_convergence.append(stats.get('efficiency', stats['co2']/100))
+        
+        # Guardamos el tiempo transcurrido hasta esta generación
+        history_time.append(int((time.time() - start_time) * 1000))
 
-    # FASE 2: Búsqueda Tabú (Refinamiento Local)
-    # Pulimos el resultado del AG para bajar aún más el CO2
+    # FASE FINAL: Búsqueda Tabú para pulir
     ts = TabuSearch(evaluator, tabu_size=15, max_iterations=100)
-    final_route = ts.optimize(best_ga_route)
+    final_route = ts.optimize(best_route_gen)
     
-    res_final = evaluator.calculate(final_route)
-    
-    # 3. Calculamos el tiempo real transcurrido en milisegundos
+    # Datos finales
+    res_final_stats = evaluator.calculate(final_route)
     duration_ms = int((time.time() - start_time) * 1000)
-    
-    # 4. Empaquetamos todo para el JSON que espera api.py y app.js
-    res_final['history'] = history 
-    res_final['execution_time'] = duration_ms 
-    
-    print(f"Resultado Final: {res_final['co2']} kg CO2 en {duration_ms}ms")
-    
-    return final_route, res_final
 
+    # Empaquetado total
+    res_final_stats['history_fitness'] = history_fitness
+    res_final_stats['history_convergence'] = history_convergence
+    res_final_stats['history_time'] = history_time
+    res_final_stats['history_baseline'] = [history_fitness[0]] * 100
+    res_final_stats['execution_time'] = duration_ms
+
+    # Retornamos la ruta final optimizada y las estadísticas finales, incluyendo el historial para las gráficas.
+    return final_route, res_final_stats
+
+# ------------------------------------------------------------------------------
 if __name__ == "__main__":
     # Escenario de prueba (Simulando clics en el Canvas)
     puntos = [

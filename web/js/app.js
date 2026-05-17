@@ -93,11 +93,10 @@ document.getElementById('btnOptimize').addEventListener('click', async () => {
 
         const textResponse = await response.text();
 
-        // Ahora sí puedes usar textResponse
+        // TextResponse para manejar casos donde el backend pueda enviar "Infinity" o valores no numéricos, reemplazándolos por un valor grande para evitar errores de parseo en JSON.
         const sanitized = textResponse.replace(/Infinity/g, "999999");
         const result = JSON.parse(sanitized);
 
-        // AÑADE ESTA LÍNEA AQUÍ:
         console.log("Datos recibidos de Flask:", result)
 
         // Comprobamos que la respuesta es válida y contiene la ruta optimizada
